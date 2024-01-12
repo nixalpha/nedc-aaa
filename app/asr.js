@@ -9,7 +9,6 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { useState } from "react";
-import { Link } from "expo-router";
 
 import { Audio } from "expo-av";
 
@@ -34,7 +33,6 @@ export default function Page() {
           padding: 16,
           gap: 20,
           flexDirection: "column",
-          borderWidth: 1,
         }}
       >
         <TouchableOpacity
@@ -101,6 +99,7 @@ export default function Page() {
             backgroundColor: "aquamarine",
             height: "75%",
             width: "100%",
+            borderRadius: 10
           }}
         >
           <ScrollView>
