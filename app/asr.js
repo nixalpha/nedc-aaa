@@ -33,6 +33,7 @@ export default function Page() {
           padding: 16,
           gap: 20,
           flexDirection: "column",
+          backgroundColor: '#88A4D3'
         }}
       >
         <TouchableOpacity
@@ -82,11 +83,11 @@ export default function Page() {
 
         <TouchableOpacity
           style={{
-            borderWidth: 1,
             width: 150,
             height: 30,
             borderRadius: 10,
             alignItems: "center",
+            backgroundColor: "white"
           }}
           onPress={() => setIsMicOn(!isMicOn)}
           disabled={true}
@@ -96,7 +97,7 @@ export default function Page() {
 
         <View
           style={{
-            backgroundColor: "aquamarine",
+            backgroundColor: "#e1e4f3",
             height: "75%",
             width: "100%",
             borderRadius: 10

@@ -30,6 +30,7 @@ export default function Page() {
           padding: 16,
           gap: 20,
           flexDirection: "column",
+          backgroundColor: '#88A4D3'
         }}
       >
         <TouchableOpacity
@@ -47,11 +48,11 @@ export default function Page() {
         </TouchableOpacity>
         <TextInput
           style={{
-            backgroundColor: "aquamarine",
+            backgroundColor: "#e1e4f3",
             height: "75%",
             width: "100%",
             borderRadius: 10,
-            textAlignVertical: 'top'
+            textAlignVertical: 'top',
           }}
           value={text}
           onChangeText={setText}
