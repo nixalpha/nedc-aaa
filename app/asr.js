@@ -1,11 +1,7 @@
 import {
-  Button,
   View,
-  Pressable,
   Text,
-  Alert,
   ScrollView,
-  StyleSheet,
   TouchableOpacity,
 } from "react-native";
 import { useState } from "react";
@@ -19,7 +15,6 @@ import { initWhisper } from "whisper.rn";
 export default function Page() {
   const [isMicOn, setIsMicOn] = useState(false);
 
-  const [recording, setRecording] = useState();
   const [permissionResponse, requestPermission] = Audio.usePermissions();
 
   const [text, setText] = useState("");
@@ -46,6 +41,11 @@ export default function Page() {
             verticalAlign: "middle",
           }}
           onPress={async () => {
+            if (permissionResponse.status !== 'granted') {
+              console.log('Requesting permission..');
+              await requestPermission();
+            }
+
             const ctx = await initWhisper({
               filePath: require("../assets/ggml-tiny.en.bin"),
             });
