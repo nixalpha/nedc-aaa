@@ -2,7 +2,7 @@ import {
   View,
   Text,
   ScrollView,
-  TouchableOpacity,
+  TouchableOpacity
 } from "react-native";
 import { useState } from "react";
 
@@ -20,17 +20,7 @@ export default function Page() {
   const [text, setText] = useState("");
 
   return (
-    <View style={{ flex: 1 }}>
-      <View
-        style={{
-          flex: 1,
-          alignItems: "center",
-          padding: 16,
-          gap: 20,
-          flexDirection: "column",
-          backgroundColor: '#88A4D3'
-        }}
-      >
+    <View style={{ flex: 1, gap: 20, padding: 16, backgroundColor: '#88A4D3', alignItems: 'center'}}>
         <TouchableOpacity
           style={{
             borderWidth: 1,
@@ -97,9 +87,9 @@ export default function Page() {
 
         <View
           style={{
+            alignSelf: 'stretch',
+            flex: 1,
             backgroundColor: "#e1e4f3",
-            height: "75%",
-            width: "100%",
             borderRadius: 10
           }}
         >
@@ -107,7 +97,6 @@ export default function Page() {
             <Text>{text}</Text>
           </ScrollView>
         </View>
-      </View>
     </View>
   );
 }
