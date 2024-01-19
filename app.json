@@ -29,7 +29,8 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      "onnxruntime-react-native"
     ],
     "scheme": "nedc-aaa"
   }
