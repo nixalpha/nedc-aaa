@@ -9,6 +9,7 @@ import { initWhisper } from "whisper.rn";
 
 export default function Page() {
   const [isMicOn, setIsMicOn] = useState(false);
+  const [stopTranscribe, setStopTranscribe] = useState(null);
 
   const [permissionResponse, requestPermission] = Audio.usePermissions();
 
@@ -39,6 +40,13 @@ export default function Page() {
             await requestPermission();
           }
 
+          if (stopTranscribe && stopTranscribe?.stop) {
+            await stopTranscribe.stop();
+            setStopTranscribe(null);
+            setIsMicOn(false);
+            return;
+          }
+
           const ctx = await initWhisper({
             filePath: require("../assets/ggml-tiny.en.bin"),
           });
@@ -50,8 +58,10 @@ export default function Page() {
             language: "en",
             realtimeAudioSec: 120,
             realtimeAudioSliceSec: 10,
+            useVad: true,
           };
           const { stop, subscribe } = await ctx.transcribeRealtime(options);
+          setStopTranscribe({stop});
 
           subscribe((evt) => {
             const { isCapturing, data, processTime, recordingTime } = evt;
@@ -66,6 +76,7 @@ export default function Page() {
             setText(data.result);
             if (!isCapturing) {
               console.log("Finished realtime transcribing");
+              setStopTranscribe(null);
               setIsMicOn(false);
             }
           });
