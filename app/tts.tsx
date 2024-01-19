@@ -1,11 +1,7 @@
 import * as React from "react";
 import {
   View,
-  StyleSheet,
-  Button,
   TouchableOpacity,
-  ScrollView,
-  Text,
 } from "react-native";
 import * as Speech from "expo-speech";
 
@@ -38,7 +34,6 @@ export default function Page() {
           height: 100,
           borderRadius: 50,
           alignItems: "center",
-          verticalAlign: "middle",
         }}
         onPress={speak}
       >

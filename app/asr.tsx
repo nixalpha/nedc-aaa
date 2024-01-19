@@ -9,7 +9,7 @@ import { initWhisper } from "whisper.rn";
 
 export default function Page() {
   const [isMicOn, setIsMicOn] = useState(false);
-  const [stopTranscribe, setStopTranscribe] = useState(null);
+  const [stopTranscribe, setStopTranscribe] = useState<{stop: () => void} | null>(null);
 
   const [permissionResponse, requestPermission] = Audio.usePermissions();
 
@@ -31,11 +31,10 @@ export default function Page() {
           width: 100,
           height: 100,
           borderRadius: 50,
-          alignItems: "center",
-          verticalAlign: "middle",
+          alignItems: "center"
         }}
         onPress={async () => {
-          if (permissionResponse.status !== "granted") {
+          if (permissionResponse?.status !== "granted") {
             console.log("Requesting permission..");
             await requestPermission();
           }
@@ -72,8 +71,8 @@ export default function Page() {
             //     `Process time: ${processTime}ms\n` +
             //     `Recording time: ${recordingTime}ms`
             // );
-            console.log(`${data.result}\n\n`);
-            setText(data.result);
+            console.log(`${data?.result}\n\n`);
+            setText(`${data?.result}`);
             if (!isCapturing) {
               console.log("Finished realtime transcribing");
               setStopTranscribe(null);
