@@ -24,6 +24,10 @@ export default function HomeScreen() {
       <Link href="/tts" asChild>
         <Button title="Text to Speech"></Button>
       </Link>
+      
+      <Link href="/onnx" asChild>
+        <Button title="onnx"></Button>
+      </Link>
     </View>
   );
 }
