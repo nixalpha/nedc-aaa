@@ -11,7 +11,7 @@ export default function AppLayout() {
           tabBarLabel: "ASR",
           title: "Speech Audio to Text",
           tabBarIcon: ({ focused, size }) => (
-            <Icon name="mic" size={size}></Icon>
+            <Icon name="mic" size={size} color="#88A4D3" />
           ),
         }}
       />
@@ -21,10 +21,11 @@ export default function AppLayout() {
           tabBarLabel: "TTS",
           title: "Text to Speech",
           tabBarIcon: ({ focused, size }) => (
-            <MIcon name="speaker" size={size}></MIcon>
+            <MIcon name="speaker" size={size} color="#88A4D3" />
           ),
         }}
       />
+      <Tabs.Screen name="index" options={{ href: null }} />
       <Tabs.Screen name="test" options={{ href: null }} />
       <Tabs.Screen name="onnx" options={{ href: null }} />
     </Tabs>

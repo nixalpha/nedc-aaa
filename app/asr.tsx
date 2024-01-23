@@ -7,7 +7,7 @@ import MICnedc from "../assets/icons/MICnedc.svg";
 
 import { initWhisper } from "whisper.rn";
 
-export default function Page() {
+export default function ASR() {
   const [isMicOn, setIsMicOn] = useState(false);
   const [stopTranscribe, setStopTranscribe] = useState<{stop: () => void} | null>(null);
 

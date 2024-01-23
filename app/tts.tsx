@@ -9,7 +9,7 @@ import Soundbox from "../assets/icons/SOUNDBOXnedc.svg";
 import { useState } from "react";
 import { TextInput } from "react-native-gesture-handler";
 
-export default function Page() {
+export default function TTS() {
   const [text, setText] = useState("");
 
   const speak = () => {
