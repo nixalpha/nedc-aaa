@@ -3,7 +3,7 @@ import { useState } from "react";
 
 import { Audio } from "expo-av";
 
-import MICnedc from "./assets/MICnedc.svg";
+import MICnedc from "../assets/icons/MICnedc.svg";
 
 import { initWhisper } from "whisper.rn";
 

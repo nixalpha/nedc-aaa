@@ -5,7 +5,7 @@ import {
 } from "react-native";
 import * as Speech from "expo-speech";
 
-import Soundbox from "./assets/SOUNDBOXnedc.svg";
+import Soundbox from "../assets/icons/SOUNDBOXnedc.svg";
 import { useState } from "react";
 import { TextInput } from "react-native-gesture-handler";
 

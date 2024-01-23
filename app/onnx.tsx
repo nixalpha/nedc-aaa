@@ -1,13 +1,31 @@
 import { View, Text, ScrollView, TouchableOpacity, Button } from "react-native";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Audio } from "expo-av";
 import { Asset } from "expo-asset";
 
 import { InferenceSession, Tensor } from "onnxruntime-react-native";
-import MICnedc from "./assets/MICnedc.svg";
+import MICnedc from "../assets/icons/MICnedc.svg";
+
+import LiveAudioStream, { Options } from 'react-native-live-audio-stream';
 
 let Session: InferenceSession;
+
+const options: Options = {
+  sampleRate: 32000,  // default is 44100 but 32000 is adequate for accurate voice recognition
+  channels: 1,        // 1 or 2, default 1
+  bitsPerSample: 16,  // 8 or 16, default 16
+  audioSource: 6,     // android only (see below)
+  bufferSize: 4096,    // default is 2048
+  wavFile: ""
+};
+
+// LiveAudioStream.init(options);
+// LiveAudioStream.on('data', (data: string) => {
+//   console.log(data)
+// });
+// LiveAudioStream.start();
+// LiveAudioStream.stop();
 
 export default function Page() {
   const [isMicOn, setIsMicOn] = useState(false);
@@ -15,6 +33,10 @@ export default function Page() {
   const [permissionResponse, requestPermission] = Audio.usePermissions();
 
   const [text, setText] = useState("");
+
+  // useEffect(() => {
+  //   LiveAudioStream.init(options);
+  // }, [])
 
   async function loadModel() {
     const modelPath = require("../assets/whisper_cpu_int8_model.onnx");
