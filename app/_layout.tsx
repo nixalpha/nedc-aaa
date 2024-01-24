@@ -4,7 +4,7 @@ import MIcon from "react-native-vector-icons/MaterialCommunityIcons";
 
 export default function AppLayout() {
   return (
-    <Tabs>
+    <Tabs screenOptions={{headerTitleAlign: 'center'}}>
       <Tabs.Screen
         name="asr"
         options={{

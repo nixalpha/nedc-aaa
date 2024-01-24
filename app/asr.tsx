@@ -104,6 +104,8 @@ export default function ASR() {
           alignSelf: "stretch",
           backgroundColor: "#e1e4f3",
           borderRadius: 10,
+          paddingVertical: 5,
+          paddingHorizontal: 10
         }}
       >
         <ScrollView>

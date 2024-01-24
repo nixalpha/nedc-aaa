@@ -46,9 +46,12 @@ export default function TTS() {
           alignSelf: "stretch",
           borderRadius: 10,
           textAlignVertical: "top",
+          paddingVertical: 5,
+          paddingHorizontal: 10
         }}
         value={text}
         onChangeText={setText}
+        placeholder="Start typing text to say"
       ></TextInput>
     </View>
   );
