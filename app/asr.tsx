@@ -109,7 +109,7 @@ export default function ASR() {
         }}
       >
         <ScrollView>
-          <Text>{text}</Text>
+          <Text selectable={true}>{text}</Text>
         </ScrollView>
       </View>
     </View>
