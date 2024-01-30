@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 
 import { Audio } from "expo-av";
 
-import MICnedc from "../assets/icons/MICnedc.svg";
+import MICnedc from "../../assets/icons/MICnedc.svg";
 
 import { WhisperContext, initWhisper } from "whisper.rn";
 
@@ -32,7 +32,7 @@ export default function ASR() {
     }
 
     const ctx = await initWhisper({
-      filePath: require("../assets/ggml-tiny.en.bin"),
+      filePath: require("../../assets/ggml-tiny.en.bin"),
     });
 
     console.log("Start realtime transcribing...");
