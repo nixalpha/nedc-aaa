@@ -1,19 +1,72 @@
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Audio } from "expo-av";
 
 import MICnedc from "../assets/icons/MICnedc.svg";
 
-import { initWhisper } from "whisper.rn";
+import { WhisperContext, initWhisper } from "whisper.rn";
 
 export default function ASR() {
   const [isMicOn, setIsMicOn] = useState(false);
-  const [stopTranscribe, setStopTranscribe] = useState<{stop: () => void} | null>(null);
+  const [stopTranscribe, setStopTranscribe] = useState<{
+    stop: () => void;
+  } | null>(null);
 
   const [permissionResponse, requestPermission] = Audio.usePermissions();
 
   const [text, setText] = useState("");
+
+  async function transcribe(cont: boolean) {
+    if (permissionResponse?.status !== "granted") {
+      console.log("Requesting permission..");
+      await requestPermission();
+    }
+
+    if (!cont && stopTranscribe && stopTranscribe?.stop) {
+      console.log("Stopping realtime transcribing");
+      stopTranscribe.stop();
+      setStopTranscribe(null);
+      setIsMicOn(false);
+      return;
+    }
+
+    const ctx = await initWhisper({
+      filePath: require("../assets/ggml-tiny.en.bin"),
+    });
+
+    console.log("Start realtime transcribing...");
+    setIsMicOn(true);
+
+    const options = {
+      language: "en",
+      realtimeAudioSec: 10,
+      realtimeAudioSliceSec: 10,
+      useVad: true,
+    };
+    const { stop, subscribe } = await ctx.transcribeRealtime(options);
+    setStopTranscribe({ stop });
+
+    subscribe((evt) => {
+      const { isCapturing, data, processTime, recordingTime } = evt;
+      // console.log(
+      //   `Realtime transcribing: ${isCapturing ? "ON" : "OFF"}\n` +
+      //     // The inference text result from audio record:
+      //     `Result: ${data.result}\n\n` +
+      //     `Process time: ${processTime}ms\n` +
+      //     `Recording time: ${recordingTime}ms`
+      // );
+      console.log(`${data?.result}\n\n`);
+      setText(`${data?.result}`);
+      if (!isCapturing) {
+        // console.log("Finished realtime transcribing");
+        // setStopTranscribe(null);
+        // setIsMicOn(false);
+
+        transcribe(true);
+      }
+    });
+  }
 
   return (
     <View
@@ -31,55 +84,9 @@ export default function ASR() {
           width: 100,
           height: 100,
           borderRadius: 50,
-          alignItems: "center"
+          alignItems: "center",
         }}
-        onPress={async () => {
-          if (permissionResponse?.status !== "granted") {
-            console.log("Requesting permission..");
-            await requestPermission();
-          }
-
-          if (stopTranscribe && stopTranscribe?.stop) {
-            await stopTranscribe.stop();
-            setStopTranscribe(null);
-            setIsMicOn(false);
-            return;
-          }
-
-          const ctx = await initWhisper({
-            filePath: require("../assets/ggml-tiny.en.bin"),
-          });
-
-          console.log("Start realtime transcribing...");
-          setIsMicOn(true);
-
-          const options = {
-            language: "en",
-            realtimeAudioSec: 120,
-            realtimeAudioSliceSec: 10,
-            useVad: true,
-          };
-          const { stop, subscribe } = await ctx.transcribeRealtime(options);
-          setStopTranscribe({stop});
-
-          subscribe((evt) => {
-            const { isCapturing, data, processTime, recordingTime } = evt;
-            // console.log(
-            //   `Realtime transcribing: ${isCapturing ? "ON" : "OFF"}\n` +
-            //     // The inference text result from audio record:
-            //     `Result: ${data.result}\n\n` +
-            //     `Process time: ${processTime}ms\n` +
-            //     `Recording time: ${recordingTime}ms`
-            // );
-            console.log(`${data?.result}\n\n`);
-            setText(`${data?.result}`);
-            if (!isCapturing) {
-              console.log("Finished realtime transcribing");
-              setStopTranscribe(null);
-              setIsMicOn(false);
-            }
-          });
-        }}
+        onPress={() => {transcribe(false)}}
       >
         <MICnedc width={100} height={100} />
       </TouchableOpacity>
@@ -105,7 +112,7 @@ export default function ASR() {
           backgroundColor: "#e1e4f3",
           borderRadius: 10,
           paddingVertical: 5,
-          paddingHorizontal: 10
+          paddingHorizontal: 10,
         }}
       >
         <ScrollView>
