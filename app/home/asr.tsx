@@ -6,6 +6,7 @@ import { Audio } from "expo-av";
 import MICnedc from "../../assets/icons/MICnedc.svg";
 
 import { WhisperContext, initWhisper } from "whisper.rn";
+import TranscribeResults from "../../components/TranscribeResults";
 
 export default function ASR() {
   const [isMicOn, setIsMicOn] = useState(false);
@@ -112,6 +113,8 @@ export default function ASR() {
     });
   }
 
+  const testText = ["abcdefg", "hijklmnop", "qrswxyz", "abcdefg", "hijklmnop", "qrswxyz", "abcdefg", "hijklmnop", "qrswxyz", "abcdefg", "hijklmnop", "qrswxyz", "abcdefg", "hijklmnop", "qrswxyz",];
+
   return (
     <View
       style={{
@@ -159,9 +162,11 @@ export default function ASR() {
           paddingHorizontal: 10,
         }}
       >
-        <ScrollView>
+        {/* <ScrollView>
           <Text selectable={true}>{text}</Text>
-        </ScrollView>
+        </ScrollView> */}
+
+        <TranscribeResults results={testText}/>
       </View>
     </View>
   );
