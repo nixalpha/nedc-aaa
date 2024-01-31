@@ -17,6 +17,29 @@ export default function ASR() {
 
   const [text, setText] = useState("");
 
+  const [contexts, setContexts] = useState<WhisperContext[]>();
+  const [ctIndex, setCtIndex] = useState(0);
+
+  useEffect(() => {
+    const init = async () => {
+      const ctx1 = await initWhisper({
+        filePath: require("../../assets/ggml-tiny.en.bin"),
+      });
+
+      console.log("finished init 1");
+
+      const ctx2 = await initWhisper({
+        filePath: require("../../assets/ggml-tiny.en.bin"),
+      });
+
+      console.log("finished init 2");
+
+      setContexts([ctx1, ctx2]);
+    }
+
+    init().then(() => {console.log("finished init")});
+  }, [])
+
   async function transcribe(cont: boolean) {
     if (permissionResponse?.status !== "granted") {
       console.log("Requesting permission..");
@@ -30,10 +53,9 @@ export default function ASR() {
       setIsMicOn(false);
       return;
     }
-
-    const ctx = await initWhisper({
-      filePath: require("../../assets/ggml-tiny.en.bin"),
-    });
+    
+    console.log("CTindex: " + ctIndex);
+    const ctx = contexts![ctIndex];
 
     console.log("Start realtime transcribing...");
     setIsMicOn(true);
@@ -62,6 +84,28 @@ export default function ASR() {
         // console.log("Finished realtime transcribing");
         // setStopTranscribe(null);
         // setIsMicOn(false);
+
+        // const newCtx = initWhisper({
+        //   filePath: require("../../assets/ggml-tiny.en.bin"),
+        // });
+
+        // newCtx.then((result: WhisperContext) => {
+        //   if (ctIndex == 0) {
+        //     setContexts([result, contexts![1]]);
+        //   }
+        //   else {
+        //     setContexts([contexts![0], result]);
+        //   }
+        // });
+
+        // if (cont) {
+        //   if (ctIndex == 0) {
+        //     setCtIndex(1);
+        //   }
+        //   else {
+        //     setCtIndex(0);
+        //   }
+        // }
 
         transcribe(true);
       }
