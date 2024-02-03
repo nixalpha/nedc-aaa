@@ -21,25 +21,25 @@ export default function ASR() {
   const [contexts, setContexts] = useState<WhisperContext[]>();
   const [ctIndex, setCtIndex] = useState(0);
 
-  useEffect(() => {
-    const init = async () => {
-      const ctx1 = await initWhisper({
-        filePath: require("../../assets/ggml-tiny.en.bin"),
-      });
+  // useEffect(() => {
+  //   const init = async () => {
+  //     const ctx1 = await initWhisper({
+  //       filePath: require("../../assets/ggml-tiny.en.bin"),
+  //     });
 
-      console.log("finished init 1");
+  //     console.log("finished init 1");
 
-      const ctx2 = await initWhisper({
-        filePath: require("../../assets/ggml-tiny.en.bin"),
-      });
+  //     const ctx2 = await initWhisper({
+  //       filePath: require("../../assets/ggml-tiny.en.bin"),
+  //     });
 
-      console.log("finished init 2");
+  //     console.log("finished init 2");
 
-      setContexts([ctx1, ctx2]);
-    }
+  //     setContexts([ctx1, ctx2]);
+  //   }
 
-    init().then(() => {console.log("finished init")});
-  }, [])
+  //   init().then(() => {console.log("finished init")});
+  // }, [])
 
   async function transcribe(cont: boolean) {
     if (permissionResponse?.status !== "granted") {
@@ -54,19 +54,26 @@ export default function ASR() {
       setIsMicOn(false);
       return;
     }
-    
+
     console.log("CTindex: " + ctIndex);
-    const ctx = contexts![ctIndex];
+    const ctx = await initWhisper({
+      filePath: require("../../assets/ggml-tiny.en.bin"),
+    });
 
     console.log("Start realtime transcribing...");
     setIsMicOn(true);
 
-    const options = {
-      language: "en",
-      realtimeAudioSec: 10,
+    // const options = {
+    //   language: "en",
+    //   realtimeAudioSec: 10,
+    //   realtimeAudioSliceSec: 10,
+    //   useVad: true,
+    // };
+    const options = { 
+      language: 'en',
+      realtimeAudioSec: 120,
       realtimeAudioSliceSec: 10,
-      useVad: true,
-    };
+   };
     const { stop, subscribe } = await ctx.transcribeRealtime(options);
     setStopTranscribe({ stop });
 
@@ -82,9 +89,9 @@ export default function ASR() {
       console.log(`${data?.result}\n\n`);
       setText(`${data?.result}`);
       if (!isCapturing) {
-        // console.log("Finished realtime transcribing");
-        // setStopTranscribe(null);
-        // setIsMicOn(false);
+        console.log("Finished realtime transcribing");
+        setStopTranscribe(null);
+        setIsMicOn(false);
 
         // const newCtx = initWhisper({
         //   filePath: require("../../assets/ggml-tiny.en.bin"),
@@ -108,12 +115,28 @@ export default function ASR() {
         //   }
         // }
 
-        transcribe(true);
+        // transcribe(true);
       }
     });
   }
 
-  const testText = ["abcdefg", "hijklmnop", "qrswxyz", "abcdefg", "hijklmnop", "qrswxyz", "abcdefg", "hijklmnop", "qrswxyz", "abcdefg", "hijklmnop", "qrswxyz", "abcdefg", "hijklmnop", "qrswxyz",];
+  const testText = [
+    "abcdefg",
+    "hijklmnop",
+    "qrswxyz",
+    "abcdefg",
+    "hijklmnop",
+    "qrswxyz",
+    "abcdefg",
+    "hijklmnop",
+    "qrswxyz",
+    "abcdefg",
+    "hijklmnop",
+    "qrswxyz",
+    "abcdefg",
+    "hijklmnop",
+    "qrswxyz",
+  ];
 
   return (
     <View
@@ -133,7 +156,9 @@ export default function ASR() {
           borderRadius: 50,
           alignItems: "center",
         }}
-        onPress={() => {transcribe(false)}}
+        onPress={() => {
+          transcribe(false);
+        }}
       >
         <MICnedc width={100} height={100} />
       </TouchableOpacity>
@@ -166,7 +191,14 @@ export default function ASR() {
           <Text selectable={true}>{text}</Text>
         </ScrollView> */}
 
-        <TranscribeResults results={testText}/>
+        <TranscribeResults
+          results={text
+            .replace(
+              /(\.+|\:|\!|\?)(\"*|\'*|\)*|}*|]*)(\s|\n|\r|\r\n)/gm,
+              "$1$2|"
+            )
+            .split("|")}
+        />
       </View>
     </View>
   );

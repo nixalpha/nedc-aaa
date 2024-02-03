@@ -14,7 +14,7 @@ export default function AppLayout() {
 
       <Drawer.Screen name="home" options={{drawerLabel: 'Home', headerTitle: 'Home' }} />
 
-      <Drawer.Screen name="pastconvs" options={{drawerLabel: 'Saved conversations'}} />
+      <Drawer.Screen name="pastconvs" options={{drawerLabel: 'Saved Conversations', headerTitle: 'Saved Conversations'}} />
     </Drawer>
   );
 }
