@@ -8,6 +8,8 @@ import MICnedc from "../../assets/icons/MICnedc.svg";
 import { WhisperContext, initWhisper } from "whisper.rn";
 import TranscribeResults from "../../components/TranscribeResults";
 
+import { storage } from "../../components/Storage";
+
 export const useLazyEffect:typeof useEffect = (cb, dep) => {
   const initializeRef = useRef<boolean>(false)
 
@@ -29,10 +31,12 @@ export default function ASR() {
 
   const [permissionResponse, requestPermission] = Audio.usePermissions();
 
-  const [text, setText] = useState("");
+  const [text, setText] = useState(storage.getString("text"));
 
   const [contexts, setContexts] = useState<WhisperContext[]>();
   const [ctIndex, setCtIndex] = useState(0);
+
+  const [cont, setCont] = useState(true);
 
   useEffect(() => {
     const init = async () => {
@@ -54,24 +58,27 @@ export default function ASR() {
     init().then(() => {console.log("finished init")});
   }, [])
 
-  async function transcribe(cont: boolean) {
+  async function transcribe() {
     if (permissionResponse?.status !== "granted") {
       console.log("Requesting permission..");
       await requestPermission();
     }
 
-    if (!cont && stopTranscribe && stopTranscribe?.stop) {
+    if (stopTranscribe && stopTranscribe?.stop) {
       console.log("Stopping realtime transcribing");
       stopTranscribe.stop();
       setStopTranscribe(null);
+      console.log("stop to null");
       setIsMicOn(false);
+
+      setCont(false);
+
+      storage.set("text", text!);
+
       return;
     }
 
     console.log("CTindex: " + ctIndex);
-    // const ctx = await initWhisper({
-    //   filePath: require("../../assets/ggml-tiny.en.bin"),
-    // });
     const ctx = contexts![ctIndex];
 
     console.log("Start realtime transcribing...");
@@ -85,7 +92,7 @@ export default function ASR() {
     // };
     const options = { 
       language: 'en',
-      realtimeAudioSec: 20,
+      realtimeAudioSec: 10,
       realtimeAudioSliceSec: 10,
    };
     const { stop, subscribe } = await ctx.transcribeRealtime(options);
@@ -93,14 +100,6 @@ export default function ASR() {
 
     subscribe((evt) => {
       const { isCapturing, data, processTime, recordingTime } = evt;
-      // console.log(
-      //   `Realtime transcribing: ${isCapturing ? "ON" : "OFF"}\n` +
-      //     // The inference text result from audio record:
-      //     `Result: ${data.result}\n\n` +
-      //     `Process time: ${processTime}ms\n` +
-      //     `Recording time: ${recordingTime}ms`
-      // );
-      console.log(`${data?.result}\n\n`);
       setText(`${data?.result}`);
       if (!isCapturing) {
         console.log("Finished realtime transcribing");
@@ -120,39 +119,21 @@ export default function ASR() {
           }
         });
 
-        if (cont) {
-          if (ctIndex == 0) {
-            setCtIndex(1);
-          }
-          else {
-            setCtIndex(0);
-          }
+        if (ctIndex == 0) {
+          setCtIndex(1);
+        }
+        else {
+          setCtIndex(0);
         }
       }
     });
   }
 
   useLazyEffect(() => {
-    transcribe(true);
+    if (cont) {
+      transcribe();
+    }
   }, [ctIndex])
-
-  const testText = [
-    "abcdefg",
-    "hijklmnop",
-    "qrswxyz",
-    "abcdefg",
-    "hijklmnop",
-    "qrswxyz",
-    "abcdefg",
-    "hijklmnop",
-    "qrswxyz",
-    "abcdefg",
-    "hijklmnop",
-    "qrswxyz",
-    "abcdefg",
-    "hijklmnop",
-    "qrswxyz",
-  ];
 
   return (
     <View
@@ -174,12 +155,12 @@ export default function ASR() {
         }}
         onPress={() => {
           if (stopTranscribe) {
-            console.log("start 1");
-            transcribe(false);
+            setCont(false);
+            transcribe();
           }
           else {
-            console.log("start 2");
-            transcribe(true);
+            setCont(true);
+            transcribe();
           }
         }}
       >
@@ -210,17 +191,13 @@ export default function ASR() {
           paddingHorizontal: 10,
         }}
       >
-        {/* <ScrollView>
-          <Text selectable={true}>{text}</Text>
-        </ScrollView> */}
-
         <TranscribeResults
-          results={text
-            .replace(
-              /(\.+|\:|\!|\?)(\"*|\'*|\)*|}*|]*)(\s|\n|\r|\r\n)/gm,
-              "$1$2|"
-            )
-            .split("|")}
+          results={(text === undefined) ? [''] : text!
+          .replace(
+            /(\.+|\:|\!|\?)(\"*|\'*|\)*|}*|]*)(\s|\n|\r|\r\n)/gm,
+            "$1$2|"
+          )
+          .split("|")}
         />
       </View>
     </View>
