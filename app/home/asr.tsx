@@ -1,5 +1,5 @@
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 import { Audio } from "expo-av";
 
@@ -7,6 +7,19 @@ import MICnedc from "../../assets/icons/MICnedc.svg";
 
 import { WhisperContext, initWhisper } from "whisper.rn";
 import TranscribeResults from "../../components/TranscribeResults";
+
+export const useLazyEffect:typeof useEffect = (cb, dep) => {
+  const initializeRef = useRef<boolean>(false)
+
+  useEffect((...args) => {
+    if (initializeRef.current) {
+      cb(...args)
+    } else {
+      initializeRef.current = true
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, dep)
+}
 
 export default function ASR() {
   const [isMicOn, setIsMicOn] = useState(false);
@@ -21,25 +34,25 @@ export default function ASR() {
   const [contexts, setContexts] = useState<WhisperContext[]>();
   const [ctIndex, setCtIndex] = useState(0);
 
-  // useEffect(() => {
-  //   const init = async () => {
-  //     const ctx1 = await initWhisper({
-  //       filePath: require("../../assets/ggml-tiny.en.bin"),
-  //     });
+  useEffect(() => {
+    const init = async () => {
+      const ctx1 = await initWhisper({
+        filePath: require("../../assets/ggml-tiny.en.bin"),
+      });
 
-  //     console.log("finished init 1");
+      console.log("finished init 1");
 
-  //     const ctx2 = await initWhisper({
-  //       filePath: require("../../assets/ggml-tiny.en.bin"),
-  //     });
+      const ctx2 = await initWhisper({
+        filePath: require("../../assets/ggml-tiny.en.bin"),
+      });
 
-  //     console.log("finished init 2");
+      console.log("finished init 2");
 
-  //     setContexts([ctx1, ctx2]);
-  //   }
+      setContexts([ctx1, ctx2]);
+    }
 
-  //   init().then(() => {console.log("finished init")});
-  // }, [])
+    init().then(() => {console.log("finished init")});
+  }, [])
 
   async function transcribe(cont: boolean) {
     if (permissionResponse?.status !== "granted") {
@@ -56,9 +69,10 @@ export default function ASR() {
     }
 
     console.log("CTindex: " + ctIndex);
-    const ctx = await initWhisper({
-      filePath: require("../../assets/ggml-tiny.en.bin"),
-    });
+    // const ctx = await initWhisper({
+    //   filePath: require("../../assets/ggml-tiny.en.bin"),
+    // });
+    const ctx = contexts![ctIndex];
 
     console.log("Start realtime transcribing...");
     setIsMicOn(true);
@@ -71,7 +85,7 @@ export default function ASR() {
     // };
     const options = { 
       language: 'en',
-      realtimeAudioSec: 120,
+      realtimeAudioSec: 20,
       realtimeAudioSliceSec: 10,
    };
     const { stop, subscribe } = await ctx.transcribeRealtime(options);
@@ -93,32 +107,34 @@ export default function ASR() {
         setStopTranscribe(null);
         setIsMicOn(false);
 
-        // const newCtx = initWhisper({
-        //   filePath: require("../../assets/ggml-tiny.en.bin"),
-        // });
+        const newCtx = initWhisper({
+          filePath: require("../../assets/ggml-tiny.en.bin"),
+        });
 
-        // newCtx.then((result: WhisperContext) => {
-        //   if (ctIndex == 0) {
-        //     setContexts([result, contexts![1]]);
-        //   }
-        //   else {
-        //     setContexts([contexts![0], result]);
-        //   }
-        // });
+        newCtx.then((result: WhisperContext) => {
+          if (ctIndex == 0) {
+            setContexts([result, contexts![1]]);
+          }
+          else {
+            setContexts([contexts![0], result]);
+          }
+        });
 
-        // if (cont) {
-        //   if (ctIndex == 0) {
-        //     setCtIndex(1);
-        //   }
-        //   else {
-        //     setCtIndex(0);
-        //   }
-        // }
-
-        // transcribe(true);
+        if (cont) {
+          if (ctIndex == 0) {
+            setCtIndex(1);
+          }
+          else {
+            setCtIndex(0);
+          }
+        }
       }
     });
   }
+
+  useLazyEffect(() => {
+    transcribe(true);
+  }, [ctIndex])
 
   const testText = [
     "abcdefg",
@@ -157,7 +173,14 @@ export default function ASR() {
           alignItems: "center",
         }}
         onPress={() => {
-          transcribe(false);
+          if (stopTranscribe) {
+            console.log("start 1");
+            transcribe(false);
+          }
+          else {
+            console.log("start 2");
+            transcribe(true);
+          }
         }}
       >
         <MICnedc width={100} height={100} />
