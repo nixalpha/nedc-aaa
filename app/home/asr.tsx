@@ -78,8 +78,8 @@ export default function ASR() {
 
       setCont(false);
 
-      // storage.set("Conversation 2", text);
-      // console.log(storage.getAllKeys());
+      storage.set("Conversation " + (storage.getAllKeys().length + 1), text);
+      console.log(storage.getAllKeys());
 
       return;
     }
@@ -98,7 +98,7 @@ export default function ASR() {
     // };
     const options = { 
       language: 'en',
-      realtimeAudioSec: 10,
+      realtimeAudioSec: 600,
       realtimeAudioSliceSec: 5,
    };
     const { stop, subscribe } = await ctx.transcribeRealtime(options);
