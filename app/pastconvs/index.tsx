@@ -1,13 +1,32 @@
 import { Link } from "expo-router";
-import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  RefreshControl,
+} from "react-native";
 import { storage } from "../../components/Storage";
+import { useCallback, useState } from "react";
 
 export default function PastConvs() {
+  const [refreshing, setRefreshing] = useState(false);
+  const [ids, setIds] = useState(storage.getAllKeys());
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    setIds(storage.getAllKeys());
+    setRefreshing(false);
+  }, []);
+
   return (
-    <ScrollView style={{ backgroundColor: "#e1e4f3" }}>
+    <ScrollView
+      style={{ backgroundColor: "#e1e4f3" }}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
+    >
       <View style={{ padding: 10, flex: 1, gap: 10 }}>
-        {storage.getAllKeys().map((item, index) => (
-          
+        {ids.map((item, index) => (
           <View
             key={index}
             style={{
