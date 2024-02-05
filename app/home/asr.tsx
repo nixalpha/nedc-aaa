@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, Button } from "react-native";
 import { useEffect, useState, useRef } from "react";
 
 import { Audio } from "expo-av";
@@ -23,6 +23,11 @@ export const useLazyEffect:typeof useEffect = (cb, dep) => {
   }, dep)
 }
 
+type ContInfoProps = {
+  ctIndex: number;
+  prevText: string;
+};
+
 export default function ASR() {
   const [isMicOn, setIsMicOn] = useState(false);
   const [stopTranscribe, setStopTranscribe] = useState<{
@@ -31,11 +36,12 @@ export default function ASR() {
 
   const [permissionResponse, requestPermission] = Audio.usePermissions();
 
-  const [text, setText] = useState(storage.getString("text"));
+  const [text, setText] = useState("");
 
   const [contexts, setContexts] = useState<WhisperContext[]>();
-  const [ctIndex, setCtIndex] = useState(0);
+  // const [ctIndex, setCtIndex] = useState(0);
 
+  const [contInfo, setContInfo] = useState<ContInfoProps>({ctIndex: 0, prevText: ""});
   const [cont, setCont] = useState(true);
 
   useEffect(() => {
@@ -68,18 +74,18 @@ export default function ASR() {
       console.log("Stopping realtime transcribing");
       stopTranscribe.stop();
       setStopTranscribe(null);
-      console.log("stop to null");
       setIsMicOn(false);
 
       setCont(false);
 
-      storage.set("text", text!);
+      // storage.set("Conversation 2", text);
+      // console.log(storage.getAllKeys());
 
       return;
     }
 
-    console.log("CTindex: " + ctIndex);
-    const ctx = contexts![ctIndex];
+    console.log("CTindex: " + contInfo.ctIndex);
+    const ctx = contexts![contInfo.ctIndex];
 
     console.log("Start realtime transcribing...");
     setIsMicOn(true);
@@ -93,25 +99,24 @@ export default function ASR() {
     const options = { 
       language: 'en',
       realtimeAudioSec: 10,
-      realtimeAudioSliceSec: 10,
+      realtimeAudioSliceSec: 5,
    };
     const { stop, subscribe } = await ctx.transcribeRealtime(options);
     setStopTranscribe({ stop });
 
     subscribe((evt) => {
       const { isCapturing, data, processTime, recordingTime } = evt;
-      setText(`${data?.result}`);
+      setText(contInfo.prevText + `${data?.result}`);
       if (!isCapturing) {
         console.log("Finished realtime transcribing");
         setStopTranscribe(null);
-        setIsMicOn(false);
 
         const newCtx = initWhisper({
           filePath: require("../../assets/ggml-tiny.en.bin"),
         });
 
         newCtx.then((result: WhisperContext) => {
-          if (ctIndex == 0) {
+          if (contInfo.ctIndex == 0) {
             setContexts([result, contexts![1]]);
           }
           else {
@@ -119,11 +124,11 @@ export default function ASR() {
           }
         });
 
-        if (ctIndex == 0) {
-          setCtIndex(1);
+        if (contInfo.ctIndex == 0) {
+          setContInfo({ctIndex: 1, prevText: contInfo.prevText + `${data?.result}`});
         }
         else {
-          setCtIndex(0);
+          setContInfo({ctIndex: 0, prevText: contInfo.prevText + `${data?.result}`});
         }
       }
     });
@@ -133,7 +138,7 @@ export default function ASR() {
     if (cont) {
       transcribe();
     }
-  }, [ctIndex])
+  }, [contInfo])
 
   return (
     <View
@@ -181,6 +186,8 @@ export default function ASR() {
         <Text>{isMicOn ? "mic on" : "mic off"}</Text>
       </TouchableOpacity>
 
+      <Button title="Clear data" onPress={() => storage.clearAll()}></Button>
+
       <View
         style={{
           flex: 1,
@@ -192,7 +199,7 @@ export default function ASR() {
         }}
       >
         <TranscribeResults
-          results={(text === undefined) ? [''] : text!
+          results={text
           .replace(
             /(\.+|\:|\!|\?)(\"*|\'*|\)*|}*|]*)(\s|\n|\r|\r\n)/gm,
             "$1$2|"
