@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TouchableOpacity, Button } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, Button, ActivityIndicator } from "react-native";
 import { useEffect, useState, useRef } from "react";
 
 import { Audio } from "expo-av";
@@ -10,24 +10,6 @@ import TranscribeResults from "../../components/TranscribeResults";
 
 import { storage } from "../../components/Storage";
 
-export const useLazyEffect:typeof useEffect = (cb, dep) => {
-  const initializeRef = useRef<boolean>(false)
-
-  useEffect((...args) => {
-    if (initializeRef.current) {
-      cb(...args)
-    } else {
-      initializeRef.current = true
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, dep)
-}
-
-type ContInfoProps = {
-  ctIndex: number;
-  prevText: string;
-};
-
 export default function ASR() {
   const [isMicOn, setIsMicOn] = useState(false);
   const [stopTranscribe, setStopTranscribe] = useState<{
@@ -35,30 +17,18 @@ export default function ASR() {
   } | null>(null);
 
   const [permissionResponse, requestPermission] = Audio.usePermissions();
+  const [context, setContext] = useState<WhisperContext>();
 
   const [text, setText] = useState("");
-
-  const [contexts, setContexts] = useState<WhisperContext[]>();
-  // const [ctIndex, setCtIndex] = useState(0);
-
-  const [contInfo, setContInfo] = useState<ContInfoProps>({ctIndex: 0, prevText: ""});
-  const [cont, setCont] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const init = async () => {
-      const ctx1 = await initWhisper({
+      const ctx = await initWhisper({
         filePath: require("../../assets/ggml-tiny.en.bin"),
-      });
+      });  
 
-      console.log("finished init 1");
-
-      const ctx2 = await initWhisper({
-        filePath: require("../../assets/ggml-tiny.en.bin"),
-      });
-
-      console.log("finished init 2");
-
-      setContexts([ctx1, ctx2]);
+      setContext(ctx);
     }
 
     init().then(() => {console.log("finished init")});
@@ -72,20 +42,15 @@ export default function ASR() {
 
     if (stopTranscribe && stopTranscribe?.stop) {
       console.log("Stopping realtime transcribing");
+      setSaving(true);
       stopTranscribe.stop();
-      setStopTranscribe(null);
-      setIsMicOn(false);
-
-      setCont(false);
-
+      // setStopTranscribe(null);
+      // setIsMicOn(false);
       storage.set("Conversation " + (storage.getAllKeys().length + 1), text);
-      console.log(storage.getAllKeys());
+      // console.log(storage.getAllKeys());
 
       return;
     }
-
-    console.log("CTindex: " + contInfo.ctIndex);
-    const ctx = contexts![contInfo.ctIndex];
 
     console.log("Start realtime transcribing...");
     setIsMicOn(true);
@@ -98,115 +63,93 @@ export default function ASR() {
     // };
     const options = { 
       language: 'en',
-      realtimeAudioSec: 600,
+      realtimeAudioSec: 10,
       realtimeAudioSliceSec: 5,
    };
-    const { stop, subscribe } = await ctx.transcribeRealtime(options);
+    const { stop, subscribe } = await context!.transcribeRealtime(options);
     setStopTranscribe({ stop });
 
     subscribe((evt) => {
       const { isCapturing, data, processTime, recordingTime } = evt;
-      setText(contInfo.prevText + `${data?.result}`);
+      setText(`${data?.result}`);
+
       if (!isCapturing) {
-        console.log("Finished realtime transcribing");
         setStopTranscribe(null);
-
-        const newCtx = initWhisper({
-          filePath: require("../../assets/ggml-tiny.en.bin"),
-        });
-
-        newCtx.then((result: WhisperContext) => {
-          if (contInfo.ctIndex == 0) {
-            setContexts([result, contexts![1]]);
-          }
-          else {
-            setContexts([contexts![0], result]);
-          }
-        });
-
-        if (contInfo.ctIndex == 0) {
-          setContInfo({ctIndex: 1, prevText: contInfo.prevText + `${data?.result}`});
-        }
-        else {
-          setContInfo({ctIndex: 0, prevText: contInfo.prevText + `${data?.result}`});
-        }
+        console.log("Finished realtime transcribing");
+        setIsMicOn(false);
       }
     });
   }
 
-  useLazyEffect(() => {
-    if (cont) {
-      transcribe();
-    }
-  }, [contInfo])
-
-  return (
-    <View
-      style={{
-        flex: 1,
-        gap: 20,
-        padding: 16,
-        backgroundColor: "#88A4D3",
-        alignItems: "center",
-      }}
-    >
-      <TouchableOpacity
-        style={{
-          borderWidth: 1,
-          width: 100,
-          height: 100,
-          borderRadius: 50,
-          alignItems: "center",
-        }}
-        onPress={() => {
-          if (stopTranscribe) {
-            setCont(false);
-            transcribe();
-          }
-          else {
-            setCont(true);
-            transcribe();
-          }
-        }}
-      >
-        <MICnedc width={100} height={100} />
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={{
-          width: 150,
-          height: 30,
-          borderRadius: 10,
-          alignItems: "center",
-          backgroundColor: "white",
-        }}
-        onPress={() => setIsMicOn(!isMicOn)}
-        disabled={true}
-      >
-        <Text>{isMicOn ? "mic on" : "mic off"}</Text>
-      </TouchableOpacity>
-
-      <Button title="Clear data" onPress={() => storage.clearAll()}></Button>
-
+  if (context) {
+    return (
       <View
         style={{
           flex: 1,
-          alignSelf: "stretch",
-          backgroundColor: "#e1e4f3",
-          borderRadius: 10,
-          paddingVertical: 5,
-          paddingHorizontal: 10,
+          gap: 20,
+          padding: 16,
+          backgroundColor: "#88A4D3",
+          alignItems: "center",
         }}
       >
-        <TranscribeResults
-          results={text
-          .replace(
-            /(\.+|\:|\!|\?)(\"*|\'*|\)*|}*|]*)(\s|\n|\r|\r\n)/gm,
-            "$1$2|"
-          )
-          .split("|")}
-        />
+        <TouchableOpacity
+          style={{
+            borderWidth: 1,
+            width: 100,
+            height: 100,
+            borderRadius: 50,
+            alignItems: "center",
+          }}
+          onPress={() => {
+            transcribe();
+          }}
+        >
+          <MICnedc width={100} height={100} />
+        </TouchableOpacity>
+  
+        <TouchableOpacity
+          style={{
+            width: 150,
+            height: 30,
+            borderRadius: 10,
+            alignItems: "center",
+            backgroundColor: "white",
+          }}
+          onPress={() => setIsMicOn(!isMicOn)}
+          disabled={true}
+        >
+          <Text>{isMicOn ? "mic on" : "mic off"}</Text>
+        </TouchableOpacity>
+  
+        <Button title="Clear data" onPress={() => storage.clearAll()}></Button>
+  
+        <View
+          style={{
+            flex: 1,
+            alignSelf: "stretch",
+            backgroundColor: "#e1e4f3",
+            borderRadius: 10,
+            paddingVertical: 5,
+            paddingHorizontal: 10,
+          }}
+        >
+          <TranscribeResults
+            results={text
+            .replace(
+              /(\.+|\:|\!|\?)(\"*|\'*|\)*|}*|]*)(\s|\n|\r|\r\n)/gm,
+              "$1$2|"
+            )
+            .split("|")}
+          />
+        </View>
       </View>
-    </View>
-  );
+    );
+  }
+  else {
+    return (
+      <View style={{flex:1, justifyContent:'center', alignItems:'center'}}>
+        <ActivityIndicator color="88A4D3"/>
+      </View>
+    );
+  }
 }
