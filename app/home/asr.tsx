@@ -5,7 +5,7 @@ import { Audio } from "expo-av";
 
 import MICnedc from "../../assets/icons/MICnedc.svg";
 
-import { WhisperContext, initWhisper } from "whisper.rn";
+import { TranscribeRealtimeOptions, WhisperContext, initWhisper } from "whisper.rn";
 import TranscribeResults from "../../components/TranscribeResults";
 
 import { storage } from "../../components/Storage";
@@ -20,7 +20,6 @@ export default function ASR() {
   const [context, setContext] = useState<WhisperContext>();
 
   const [text, setText] = useState("");
-  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const init = async () => {
@@ -42,7 +41,6 @@ export default function ASR() {
 
     if (stopTranscribe && stopTranscribe?.stop) {
       console.log("Stopping realtime transcribing");
-      setSaving(true);
       stopTranscribe.stop();
       // setStopTranscribe(null);
       // setIsMicOn(false);
@@ -61,11 +59,13 @@ export default function ASR() {
     //   realtimeAudioSliceSec: 10,
     //   useVad: true,
     // };
-    const options = { 
-      language: 'auto',
+    const options: TranscribeRealtimeOptions = { 
+      language: 'en',
       realtimeAudioSec: 10,
       realtimeAudioSliceSec: 5,
-   };
+      useVad: true,
+      continuous: true
+    };
     const { stop, subscribe } = await context!.transcribeRealtime(options);
     setStopTranscribe({ stop });
 
@@ -75,8 +75,8 @@ export default function ASR() {
 
       if (!isCapturing) {
         setStopTranscribe(null);
-        console.log("Finished realtime transcribing");
         setIsMicOn(false);
+        console.log("Finished realtime transcribing");
       }
     });
   }

@@ -1,0 +1,66 @@
+diff --git a/node_modules/whisper.rn/android/src/main/java/com/rnwhisper/WhisperContext.java b/node_modules/whisper.rn/android/src/main/java/com/rnwhisper/WhisperContext.java
+index c6f30d5..cdf92c9 100644
+--- a/node_modules/whisper.rn/android/src/main/java/com/rnwhisper/WhisperContext.java
++++ b/node_modules/whisper.rn/android/src/main/java/com/rnwhisper/WhisperContext.java
+@@ -127,6 +127,8 @@ public class WhisperContext {
+ 
+     String audioOutputPath = options.hasKey("audioOutputPath") ? options.getString("audioOutputPath") : null;
+ 
++    boolean continuous = options.hasKey("continuous") ? options.hasKey("continuous") : false;
++
+     shortBufferSlices = new ArrayList<short[]>();
+     shortBufferSlices.add(new short[audioSliceSec * SAMPLE_RATE]);
+     sliceNSamples = new ArrayList<Integer>();
+@@ -151,7 +153,7 @@ public class WhisperContext {
+               }
+ 
+               int nSamples = sliceNSamples.get(sliceIndex);
+-              if (totalNSamples + n > audioSec * SAMPLE_RATE) {
++              if (!continuous && totalNSamples + n > audioSec * SAMPLE_RATE) {
+                 // Full, stop capturing
+                 isCapturing = false;
+                 if (
+@@ -458,16 +460,18 @@ public class WhisperContext {
+   }
+ 
+   public void stopTranscribe(int jobId) {
+-    abortTranscribe(jobId);
+-    isCapturing = false;
+-    isStoppedByAction = true;
+-    if (rootFullHandler != null) {
+-      try {
+-        rootFullHandler.join();
+-      } catch (Exception e) {
+-        Log.e(NAME, "Error joining rootFullHandler: " + e.getMessage());
++    if (isCapturing) {
++      abortTranscribe(jobId);
++      isCapturing = false;
++      isStoppedByAction = true;
++      if (rootFullHandler != null) {
++        try {
++          rootFullHandler.join();
++        } catch (Exception e) {
++          Log.e(NAME, "Error joining rootFullHandler: " + e.getMessage());
++        }
++        rootFullHandler = null;
+       }
+-      rootFullHandler = null;
+     }
+   }
+ 
+diff --git a/node_modules/whisper.rn/src/index.ts b/node_modules/whisper.rn/src/index.ts
+index 6d5785a..c72b56f 100644
+--- a/node_modules/whisper.rn/src/index.ts
++++ b/node_modules/whisper.rn/src/index.ts
+@@ -128,6 +128,11 @@ export type TranscribeRealtimeOptions = TranscribeOptions & {
+    * - Use `restore` to restore audio session state before start transcribe
+    */
+   audioSessionOnStopIos?: string | AudioSessionSettingIos
++  /**
++   * continuous or not
++   * default: false
++   */
++  continuous?: boolean
+ }
+ 
+ export type TranscribeRealtimeEvent = {
