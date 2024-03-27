@@ -62,7 +62,7 @@ export default function ASR() {
     //   useVad: true,
     // };
     const options = { 
-      language: 'en',
+      language: 'auto',
       realtimeAudioSec: 10,
       realtimeAudioSliceSec: 5,
    };

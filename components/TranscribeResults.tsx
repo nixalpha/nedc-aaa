@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { ScrollView, StyleSheet, View, Text } from "react-native";
 
 type TRProps = {
@@ -5,8 +6,15 @@ type TRProps = {
 };
 
 export default function TranscribeResults(props: TRProps) {
+  const scrollViewRef = useRef<ScrollView>(null);
+
   return (
-    <ScrollView>
+    <ScrollView
+      ref={scrollViewRef}
+      onContentSizeChange={() =>
+        scrollViewRef.current?.scrollToEnd({ animated: true })
+      }
+    >
       <View style={{ paddingVertical: 10 }}>
         {props.results.map((item, index) => (
           <View key={index}>
