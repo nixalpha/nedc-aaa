@@ -151,7 +151,7 @@ export default function ASR() {
           <Text>{isMicOn ? "mic on" : "mic off"}</Text>
         </TouchableOpacity>
 
-        <Button title="Clear data" onPress={() => storage.clearAll()}></Button>
+        {/* <Button title="Clear data" onPress={() => storage.clearAll()}></Button> */}
 
         <View
           style={{

@@ -1,5 +1,5 @@
 diff --git a/node_modules/whisper.rn/android/src/main/java/com/rnwhisper/WhisperContext.java b/node_modules/whisper.rn/android/src/main/java/com/rnwhisper/WhisperContext.java
-index c6f30d5..cdf92c9 100644
+index c6f30d5..d508554 100644
 --- a/node_modules/whisper.rn/android/src/main/java/com/rnwhisper/WhisperContext.java
 +++ b/node_modules/whisper.rn/android/src/main/java/com/rnwhisper/WhisperContext.java
 @@ -127,6 +127,8 @@ public class WhisperContext {
@@ -20,7 +20,32 @@ index c6f30d5..cdf92c9 100644
                  // Full, stop capturing
                  isCapturing = false;
                  if (
-@@ -458,16 +460,18 @@ public class WhisperContext {
+@@ -211,8 +213,9 @@ public class WhisperContext {
+             }
+           }
+           // TODO: Append in real time so we don't need to keep all slices & also reduce memory usage
+-          Log.d(NAME, "Begin saving wav file to " + audioOutputPath);
+-          AudioUtils.saveWavFile(AudioUtils.concatShortBuffers(shortBufferSlices), audioOutputPath);
++//          Log.d(NAME, "Begin saving wav file to " + audioOutputPath);
++//          AudioUtils.saveWavFile(AudioUtils.concatShortBuffers(shortBufferSlices), audioOutputPath);
++          Log.d(NAME, "transcribing: " + isTranscribing);
+           if (!isTranscribing) {
+             emitTranscribeEvent("@RNWhisper_onRealtimeTranscribeEnd", Arguments.createMap());
+           }
+@@ -284,10 +287,12 @@ public class WhisperContext {
+     }
+ 
+     boolean continueNeeded = !isCapturing && nSamplesTranscribing != nSamplesOfIndex;
++    Log.d(NAME, continueNeeded + " " + nSamplesTranscribing + nSamplesOfIndex);
+ 
+     if (isStopped && !continueNeeded) {
+       payload.putBoolean("isCapturing", false);
+       payload.putBoolean("isStoppedByAction", isStoppedByAction);
++      Log.d(NAME, "stopped in fullTranscribeSamples");
+       emitTranscribeEvent("@RNWhisper_onRealtimeTranscribeEnd", payload);
+     } else if (code == 0) {
+       payload.putBoolean("isCapturing", true);
+@@ -458,16 +463,18 @@ public class WhisperContext {
    }
  
    public void stopTranscribe(int jobId) {
