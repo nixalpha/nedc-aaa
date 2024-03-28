@@ -1,14 +1,26 @@
-import { View, Text, ScrollView, TouchableOpacity, Button, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  Button,
+  ActivityIndicator,
+} from "react-native";
 import { useEffect, useState, useRef } from "react";
 
 import { Audio } from "expo-av";
 
 import MICnedc from "../../assets/icons/MICnedc.svg";
 
-import { TranscribeRealtimeOptions, WhisperContext, initWhisper } from "whisper.rn";
+import {
+  TranscribeRealtimeOptions,
+  WhisperContext,
+  initWhisper,
+} from "whisper.rn";
 import TranscribeResults from "../../components/TranscribeResults";
 
 import { storage } from "../../components/Storage";
+import DialogInput from "react-native-dialog-input";
 
 export default function ASR() {
   const [isMicOn, setIsMicOn] = useState(false);
@@ -20,18 +32,21 @@ export default function ASR() {
   const [context, setContext] = useState<WhisperContext>();
 
   const [text, setText] = useState("");
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const init = async () => {
       const ctx = await initWhisper({
         filePath: require("../../assets/ggml-tiny.en.bin"),
-      });  
+      });
 
       setContext(ctx);
-    }
+    };
 
-    init().then(() => {console.log("finished init")});
-  }, [])
+    init().then(() => {
+      console.log("finished init");
+    });
+  }, []);
 
   async function transcribe() {
     if (permissionResponse?.status !== "granted") {
@@ -44,7 +59,7 @@ export default function ASR() {
       stopTranscribe.stop();
       // setStopTranscribe(null);
       // setIsMicOn(false);
-      storage.set("Conversation " + (storage.getAllKeys().length + 1), text);
+
       // console.log(storage.getAllKeys());
 
       return;
@@ -59,12 +74,12 @@ export default function ASR() {
     //   realtimeAudioSliceSec: 10,
     //   useVad: true,
     // };
-    const options: TranscribeRealtimeOptions = { 
-      language: 'en',
+    const options: TranscribeRealtimeOptions = {
+      language: "en",
       realtimeAudioSec: 10,
       realtimeAudioSliceSec: 5,
       useVad: true,
-      continuous: true
+      continuous: true,
     };
     const { stop, subscribe } = await context!.transcribeRealtime(options);
     setStopTranscribe({ stop });
@@ -77,6 +92,8 @@ export default function ASR() {
         setStopTranscribe(null);
         setIsMicOn(false);
         console.log("Finished realtime transcribing");
+
+        setSaving(true);
       }
     });
   }
@@ -92,6 +109,19 @@ export default function ASR() {
           alignItems: "center",
         }}
       >
+        <DialogInput
+          isDialogVisible={saving}
+          title={"Save Conversation"}
+          message={"Enter the conversation name:"}
+          hintInput={"Conversation ###"}
+          submitInput={(inputText) => {
+            setSaving(false);
+            storage.set(inputText, text);
+          }}
+          closeDialog={() => {
+            setSaving(false);
+          }}
+        ></DialogInput>
         <TouchableOpacity
           style={{
             borderWidth: 1,
@@ -106,7 +136,7 @@ export default function ASR() {
         >
           <MICnedc width={100} height={100} />
         </TouchableOpacity>
-  
+
         <TouchableOpacity
           style={{
             width: 150,
@@ -120,9 +150,9 @@ export default function ASR() {
         >
           <Text>{isMicOn ? "mic on" : "mic off"}</Text>
         </TouchableOpacity>
-  
+
         <Button title="Clear data" onPress={() => storage.clearAll()}></Button>
-  
+
         <View
           style={{
             flex: 1,
@@ -135,20 +165,19 @@ export default function ASR() {
         >
           <TranscribeResults
             results={text
-            .replace(
-              /(\.+|\:|\!|\?)(\"*|\'*|\)*|}*|]*)(\s|\n|\r|\r\n)/gm,
-              "$1$2|"
-            )
-            .split("|")}
+              .replace(
+                /(\.+|\:|\!|\?)(\"*|\'*|\)*|}*|]*)(\s|\n|\r|\r\n)/gm,
+                "$1$2|"
+              )
+              .split("|")}
           />
         </View>
       </View>
     );
-  }
-  else {
+  } else {
     return (
-      <View style={{flex:1, justifyContent:'center', alignItems:'center'}}>
-        <ActivityIndicator color="88A4D3"/>
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator color="88A4D3" />
       </View>
     );
   }
