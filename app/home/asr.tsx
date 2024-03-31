@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   Button,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { useEffect, useState, useRef } from "react";
 
@@ -111,8 +112,13 @@ export default function ASR() {
           message={"Enter the conversation name:"}
           hintInput={"Conversation ###"}
           submitInput={(inputText) => {
-            setSaving(false);
-            storage.set(inputText, text);
+            if (storage.getString(inputText) === undefined) {
+              setSaving(false);
+              storage.set(inputText, text);
+            }
+            else {
+              Alert.alert("Error", "There is already a conversation with this name. Please enter a different name.");
+            }
           }}
           closeDialog={() => {
             setSaving(false);

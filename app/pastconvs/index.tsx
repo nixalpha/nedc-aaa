@@ -1,4 +1,4 @@
-import { Link } from "expo-router";
+import { Link, useFocusEffect } from "expo-router";
 import {
   View,
   Text,
@@ -26,6 +26,8 @@ export default function PastConvs() {
     setIds(storage.getAllKeys());
     setRefreshing(false);
   }, []);
+
+  useFocusEffect(onRefresh);
 
   const [changeInfo, setChangeInfo] = useState<ChangeInfo>({
     changing: false,
@@ -116,7 +118,7 @@ export default function PastConvs() {
   );
 
   return (
-    <View>
+    <View style={{ flex: 1 }}>
       <DialogInput
         isDialogVisible={changeInfo.changing}
         title={"Change Conversation Name"}
