@@ -19,18 +19,27 @@ export default function Page() {
         paddingHorizontal: 10,
       }}
     >
-      <Text style={{ fontWeight: "bold", paddingVertical: 10, fontSize: 22, alignSelf: "center" }}>
+      <Text
+        style={{
+          fontWeight: "bold",
+          paddingVertical: 10,
+          fontSize: 22,
+          alignSelf: "center",
+        }}
+      >
         {title}
       </Text>
 
       <TranscribeResults
-          results={storage.getString(title)!
+        current={false}
+        results={storage
+          .getString(title)!
           .replace(
             /(\.+|\:|\!|\?)(\"*|\'*|\)*|}*|]*)(\s|\n|\r|\r\n)/gm,
             "$1$2|"
           )
           .split("|")}
-        />
+      />
     </View>
   );
 }

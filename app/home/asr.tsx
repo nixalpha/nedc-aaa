@@ -57,10 +57,6 @@ export default function ASR() {
     if (stopTranscribe && stopTranscribe?.stop) {
       console.log("Stopping realtime transcribing");
       stopTranscribe.stop();
-      // setStopTranscribe(null);
-      // setIsMicOn(false);
-
-      // console.log(storage.getAllKeys());
 
       return;
     }
@@ -134,7 +130,7 @@ export default function ASR() {
             transcribe();
           }}
         >
-          <MICnedc width={100} height={100} />
+          <MICnedc width="100%" height="100%" />
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -151,8 +147,6 @@ export default function ASR() {
           <Text>{isMicOn ? "mic on" : "mic off"}</Text>
         </TouchableOpacity>
 
-        {/* <Button title="Clear data" onPress={() => storage.clearAll()}></Button> */}
-
         <View
           style={{
             flex: 1,
@@ -164,6 +158,7 @@ export default function ASR() {
           }}
         >
           <TranscribeResults
+            current={true}
             results={text
               .replace(
                 /(\.+|\:|\!|\?)(\"*|\'*|\)*|}*|]*)(\s|\n|\r|\r\n)/gm,

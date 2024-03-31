@@ -2,7 +2,8 @@ import { useRef } from "react";
 import { ScrollView, StyleSheet, View, Text } from "react-native";
 
 type TRProps = {
-  results: string[];
+  current: boolean
+  results: string[]
 };
 
 export default function TranscribeResults(props: TRProps) {
@@ -11,8 +12,8 @@ export default function TranscribeResults(props: TRProps) {
   return (
     <ScrollView
       ref={scrollViewRef}
-      onContentSizeChange={() =>
-        scrollViewRef.current?.scrollToEnd({ animated: true })
+      onContentSizeChange={props.current ? () =>
+        scrollViewRef.current?.scrollToEnd({ animated: true }) : undefined
       }
     >
       <View style={{ paddingVertical: 10 }}>
