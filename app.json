@@ -4,12 +4,12 @@
     "slug": "nedc-aaa",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/aaa-icon.png",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#e1e4f3"
     },
     "assetBundlePatterns": [
       "**/*"
@@ -20,8 +20,9 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/aaa-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "monochromeImage": "./assets/adaptive-icon-mc.png",
+        "backgroundColor": "#e1e4f3"
       },
       "package": "xyz.ecao.aaa"
     },
